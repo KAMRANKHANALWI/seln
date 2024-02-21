@@ -18,20 +18,18 @@ driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install())
 
 url = 'https://njdg.ecourts.gov.in/njdgnew/?p=main/index&state_code=7~26'
 driver.get(url)
-driver.maximize_window() #maximize the window
-# time.sleep(2)
+driver.maximize_window() 
 driver.execute_script("window.scrollTo(0, 500);")
 time.sleep(2)
 
 ''' STEP 1 == Clicking on 20-30 year Total link'''
 xpath = '//a[@href="javascript:fetchYearData(\'tot20_30\',1)"]'
-wait = WebDriverWait(driver, 20)  # Adjust the timeout as needed
-element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) # Wait until the element is present
-element.click() # Click on the element
+wait = WebDriverWait(driver, 20)  
+element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) 
+element.click() 
 time.sleep(1)
 
-
-'''STEP 6 == Download Captcha img for solving'''
+'''STEP 6 == Filling Captcha Image - 1 '''
 def cathcha_solve_loop():
     for _ in range(15):
         current_datetime = datetime.now()
@@ -42,23 +40,20 @@ def cathcha_solve_loop():
         location = image_element.location
         size = image_element.size
         screenshot = driver.get_screenshot_as_png() # Capture the screenshot of the entire browser window
-
         image = Image.open(BytesIO(screenshot)) # Use Pillow to open the screenshot and crop the desired area
+        # Calculate cropping coordinates
         # left = location['x']
         # top = location['y']
         # right = left + size['width']
         # bottom = top + size['height']
-
-        # Calculate cropping coordinates
-        left = location['x'] + 250
+        left = location['x'] + 250  
         top = location['y'] + 400
         right = left + size['width'] + 150
         bottom = top + size['height'] + 100
 
-        cropped_image = image.crop((left, top, right, bottom)) # Crop the image to the specified area
-        cropped_image.save(img_download_path) # Save the cropped image to a file
+        cropped_image = image.crop((left, top, right, bottom)) 
+        cropped_image.save(img_download_path) 
         time.sleep(2)
-
 
         '''STEP 7 == Solving the Captcha img for solving'''
         if img_download_path is not None:
@@ -68,26 +63,25 @@ def cathcha_solve_loop():
             # Perform OCR on the image
             text = pytesseract.image_to_string(image) 
             cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)  # Remove unwanted characters
-            # print("Extracted Text:", cleaned_text) 
-            # text = text[:5]
-            # Print the extracted text
-            # print("Extracted Text:", text)
+            cleaned_text = cleaned_text[:5]
+            # print("Extracted Text:", cleaned_text)
         else:
             print("Not Able to find")
 
         '''STEP 8 == After Solving the Captcha Filling the data captcha data into input & Submit'''
         # Fill captcha input with extracted text
         captcha_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "captcha1")))
-        # captcha_input = driver.find_element("id", "captcha1")
         captcha_input.clear()
         captcha_input.send_keys(cleaned_text)
         time.sleep(3)
 
         xpath = '//input[@class="btn btn-success col-auto btn-sm"]'
-        wait = WebDriverWait(driver, 20)  # Adjust the timeout as needed
-        element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) # Wait until the element is present
-        element.click() # Click on the element
+        wait = WebDriverWait(driver, 20)  
+        element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) 
+        element.click() 
         time.sleep(3)
+
+        # Check for alert
         popup_timeout = 10
         try:
             popup = WebDriverWait(driver, popup_timeout).until(EC.alert_is_present())

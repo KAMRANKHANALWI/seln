@@ -14,11 +14,7 @@ from io import BytesIO
 from PIL import Image
 import pytesseract
 
-
-
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-
-current_datetime = datetime.now() # Get the current date and time
 
 url = 'https://njdg.ecourts.gov.in/njdgnew/?p=main/index&state_code=7~26'
 driver.get(url)

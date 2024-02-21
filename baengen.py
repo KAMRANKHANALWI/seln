@@ -148,11 +148,50 @@ try:
     cnr_number = cnr_number_element.text.split(":")[-1].strip()
     print(cnr_number)
 
+    firstDate_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[1]/label/strong[2]')))
+    firstDate = ":".join(firstDate_element.text.strip().split(":")[1:]).strip()
+    print(firstDate)
+    nextDate_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[2]/label/strong[2]')))
+    nextDate = ":".join(nextDate_element.text.strip().split(":")[1:]).strip()
+    print(nextDate)
+    stage_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[3]/label/strong[2]')))
+    stage = stage_element.text.split(":")[-1].strip()
+    print(stage)
+    judge_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[4]/label/strong[2]')))
+    judge = judge_element.text.split(":")[-1].strip()
+    print(judge)
+
+    # petitioner and advocate
+    span_element = driver.find_element(By.XPATH, '//span[@class="Petitioner_Advocate_table"]')
+    span_content = span_element.text
+    # Split the content into lines based on double <br> tags
+    lines_p = span_content.split('\n\n')
+    # print(lines_p)
+
+    # Extract petitioner and advocate information
+    petitioner = lines_p[0].strip()  # Strip extra spaces
+    pet_advocate = "- ".join(lines_p[1].split("- ")[1:]).strip()
+    # print("Petitioner:", petitioner)
+    # print("Advocate:", pet_advocate)
+
+    # Respondent and Advocate
+    respondent_element = driver.find_element(By.XPATH, '//span[@class="Respondent_Advocate_table"]')
+    respondent_content = respondent_element.text
+    # Split the content into lines based on double <br> tags
+    lines_r = respondent_content.split('\n\n')
+    print(lines_r)
+
+    # Extract petitioner and advocate information
+    respondent = lines_r[0].strip()  # Strip extra spaces
+    res_advocate = "- ".join(lines_r[1].split("- ")[1:]).strip()
+    print("Respondent:", respondent)
+    print("Advocate:", res_advocate)
+
     # Write the values to a CSV file
-    with open('case_details_old.csv', mode='w', newline='') as file:
+    with open('case_details_old2.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Case Type', 'Filing Number', 'Filing Date', 'Registration Number', 'Registration Date', 'CNR Number'])
-        writer.writerow([case_type, filing_number, filing_date, registration_number, registration_date, cnr_number])
+        writer.writerow(['Case Type', 'Filing Number', 'Filing Date', 'Registration Number', 'Registration Date', 'CNR Number', 'First Hearing Date', 'Next Hearing Date', 'Stage of Case', 'Court Number and Judge', 'Petitioner ', 'P Advocate', 'Respondent', 'R Advocate'])
+        writer.writerow([case_type, filing_number, filing_date, registration_number, registration_date, cnr_number, firstDate, nextDate, stage, judge, petitioner, pet_advocate, respondent, res_advocate])
 
 except TimeoutException:
     print("Timeout occurred while waiting for the elements to load.")

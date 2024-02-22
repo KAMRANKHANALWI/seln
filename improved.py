@@ -22,14 +22,13 @@ driver.maximize_window()
 driver.execute_script("window.scrollTo(0, 500);")
 time.sleep(2)
 
-''' STEP 1 == Clicking on 20-30 year Total link'''
+
 xpath = '//a[@href="javascript:fetchYearData(\'tot20_30\',1)"]'
 wait = WebDriverWait(driver, 20)  
 element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) 
 element.click() 
 time.sleep(1)
 
-'''STEP 6 == Filling Captcha Image - 1 '''
 def cathcha_solve_loop():
     for _ in range(15):
         current_datetime = datetime.now()
@@ -55,7 +54,7 @@ def cathcha_solve_loop():
         cropped_image.save(img_download_path) 
         time.sleep(2)
 
-        '''STEP 7 == Solving the Captcha img for solving'''
+
         if img_download_path is not None:
             image_path = img_download_path
             image = Image.open(image_path)
@@ -68,7 +67,7 @@ def cathcha_solve_loop():
         else:
             print("Not Able to find")
 
-        '''STEP 8 == After Solving the Captcha Filling the data captcha data into input & Submit'''
+        
         # Fill captcha input with extracted text
         captcha_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "captcha1")))
         captcha_input.clear()
@@ -154,7 +153,7 @@ def last_fourth_back():
 
 Cases = []
 
-''' STEP 5 == Clicking on 20-30 year Total link'''
+
 def fourth_loop():
     xpath = "(//tbody[@id='est_report_body']/tr/td[4]/a)"
     wait = WebDriverWait(driver, 20)
@@ -170,8 +169,7 @@ def fourth_loop():
         time.sleep(2)
     last_second_back()
 
-#########Loop#########
-''' STEP 4 == Clicking on 20-30 year Total link'''
+
 def third_loop():
     xpath = "(//tbody[@id='dist_report_body']/tr/td[4]/a)"
     wait = WebDriverWait(driver, 20)
@@ -193,7 +191,7 @@ def second_loop_both_button_clicked_single_row_column():
     element.click()
 
 
-''' STEP 2 == Clicking on 20-30 year Total link'''
+
 def first_loop():
     button_xpath = "(//tbody[@id='state_report_body']/tr/td[4]/a)"
     wait = WebDriverWait(driver, 20)

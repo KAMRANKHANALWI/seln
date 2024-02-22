@@ -1,12 +1,12 @@
-import csv
-from selenium.common.exceptions import TimeoutException
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-import pandas as pd
+from selenium.common.exceptions import TimeoutException
+import os
+import csv
+from datetime import datetime
 import time
 
 
@@ -68,31 +68,23 @@ driver.execute_script("window.scrollBy(0, 500);")
 
 time.sleep(40)
 
+from datetime import datetime
 
-# //div[@id="part1"]/div[1]/span[2]/text() 
-CaseType = []
-# //div[@id="part1"]/div[1]/span[3]/text() 
-FilingNumber = []
-# //div[@id="part1"]/div[1]/span[3]/span[2]/text() 
-FilingDate = []
-# //div[@id="part1"]/div[1]/span[4]/label 
-RegistrationNumber = []
-# //div[@id="part1"]/div[1]/span[4]/span[2]/label[2] 
-RegistrationDate = []
-# //div[@id="part1"]/div/b/span/text() 
-CNR_Number = []
+def format_date_string(date_string):
+    # Split the date string into day, month, and year
+    day, month, year = date_string.split()
 
-# XPath = //span/label/strong[2]
-FirstHearingDate = []
-NextHearingDate = []
-StageOfCase = []
-CourtNumberAndJudge = []
+    # Remove the suffix (e.g., 'th', 'st', 'nd', 'rd') from the day
+    day = day[:-2] if day[-2:] in ['th', 'st', 'nd', 'rd'] else day
 
-# XPath = //span[@class="Petitioner_Advocate_table"]
-PetitionerAndAdvocate = []
+    # Convert month name to its respective integer value
+    month = datetime.strptime(month, '%B').month
 
-# XPath = //span[@class="Respondent_Advocate_table"]
-RespondentAndAdvocate = []
+    # Format the date string as DD-MM-YYYY
+    formatted_date = "{:02d}-{:02d}-{}".format(int(day), month, year)
+
+    return formatted_date  
+
 
 print('entering loop')
 
@@ -129,69 +121,93 @@ driver.switch_to.frame(iframe)
 # print(respondent_text)
 
 try:
-    case_type_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[2]')))
+    wait = WebDriverWait(driver, 10)
+    courtName_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//h1[@class="h1class"]/span')))
+    courtName = courtName_element.text
+    print(courtName)
+    case_type_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[2]')))
     case_type = case_type_element.text.split(":")[-1].strip()
     print(case_type)
-    filing_number_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[3]')))
+    filing_number_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[3]')))
     filing_number = filing_number_element.text.split(":")[-1].strip()
     print(filing_number)
-    filing_date_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[3]/span[2]')))
+    filing_date_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[3]/span[2]')))
     filing_date = filing_date_element.text.split(":")[-1].strip()
     print(filing_date)
-    registration_number_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[4]/label')))
+    registration_number_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[4]/label')))
     registration_number = registration_number_element.text.split(":")[-1].strip()
     print(registration_number)
-    registration_date_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[4]/span[2]/label[2]')))
+    registration_date_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/span[4]/span[2]/label[2]')))
     registration_date = registration_date_element.text.split(":")[-1].strip()
     print(registration_date)
-    cnr_number_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/b/span')))
+    cnr_number_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="part1"]/div[1]/b/span')))
     cnr_number = cnr_number_element.text.split(":")[-1].strip()
     print(cnr_number)
 
-    firstDate_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[1]/label/strong[2]')))
+    firstDate_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[1]/label/strong[2]')))
     firstDate = ":".join(firstDate_element.text.strip().split(":")[1:]).strip()
+    firstDate = format_date_string(firstDate)
     print(firstDate)
-    nextDate_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[2]/label/strong[2]')))
+    nextDate_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[2]/label/strong[2]')))
     nextDate = ":".join(nextDate_element.text.strip().split(":")[1:]).strip()
+    nextDate = format_date_string(nextDate)
     print(nextDate)
-    stage_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[3]/label/strong[2]')))
+    stage_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[3]/label/strong[2]')))
     stage = stage_element.text.split(":")[-1].strip()
     print(stage)
-    judge_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[4]/label/strong[2]')))
+    judge_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@id="part1"]/div[2]/span[4]/label/strong[2]')))
     judge = judge_element.text.split(":")[-1].strip()
     print(judge)
 
     # petitioner and advocate
-    span_element = driver.find_element(By.XPATH, '//span[@class="Petitioner_Advocate_table"]')
+    span_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//span[@class="Petitioner_Advocate_table"]')))
     span_content = span_element.text
-    # Split the content into lines based on double <br> tags
     lines_p = span_content.split('\n\n')
     # print(lines_p)
 
-    # Extract petitioner and advocate information
     petitioner = lines_p[0].strip()  # Strip extra spaces
     pet_advocate = "- ".join(lines_p[1].split("- ")[1:]).strip()
     # print("Petitioner:", petitioner)
     # print("Advocate:", pet_advocate)
 
     # Respondent and Advocate
-    respondent_element = driver.find_element(By.XPATH, '//span[@class="Respondent_Advocate_table"]')
+    respondent_element = wait.until(EC.visibility_of_element_located((By.XPATH, '//span[@class="Respondent_Advocate_table"]')))
     respondent_content = respondent_element.text
-    # Split the content into lines based on double <br> tags
     lines_r = respondent_content.split('\n\n')
     print(lines_r)
 
-    # Extract petitioner and advocate information
-    respondent = lines_r[0].strip()  # Strip extra spaces
+    respondent = lines_r[0].strip()  
     res_advocate = "- ".join(lines_r[1].split("- ")[1:]).strip()
     print("Respondent:", respondent)
     print("Advocate:", res_advocate)
 
-    # Write the values to a CSV file
-    with open('case_details_old2.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Case Type', 'Filing Number', 'Filing Date', 'Registration Number', 'Registration Date', 'CNR Number', 'First Hearing Date', 'Next Hearing Date', 'Stage of Case', 'Court Number and Judge', 'Petitioner ', 'P Advocate', 'Respondent', 'R Advocate'])
-        writer.writerow([case_type, filing_number, filing_date, registration_number, registration_date, cnr_number, firstDate, nextDate, stage, judge, petitioner, pet_advocate, respondent, res_advocate])
+    # # Write the values to a CSV file
+    # with open('case_details_old2.csv', mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(['Case Type', 'Filing Number', 'Filing Date', 'Registration Number', 'Registration Date', 'CNR Number', 'First Hearing Date', 'Next Hearing Date', 'Stage of Case', 'Court Number and Judge', 'Petitioner ', 'P Advocate', 'Respondent', 'R Advocate'])
+    #     writer.writerow([case_type, filing_number, filing_date, registration_number, registration_date, cnr_number, firstDate, nextDate, stage, judge, petitioner, pet_advocate, respondent, res_advocate])
+
+    # CSV file Save in Date & Time Format 
+    # Check if the directory exists, if not, create it
+    if not os.path.exists('CSV_DATA'):
+        os.makedirs('CSV_DATA')
+    
+    # Assign Current Date
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    csv_file_path = f'CSV_DATA/{current_date}.csv'
+
+    # Check if the CSV file exists
+    if not os.path.isfile(csv_file_path):
+        with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['Court Name' ,'Case Type', 'Filing Number', 'Filing Date', 'Registration Number', 'Registration Date', 'CNR Number', 'First Hearing Date', 'Next Hearing Date', 'Stage of Case', 'Court Number and Judge', 'Petitioner ', 'P Advocate', 'Respondent', 'R Advocate'])
+
+    # Append data to the CSV file
+    with open(csv_file_path, 'a', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([courtName ,case_type, filing_number, filing_date, registration_number, registration_date, cnr_number, firstDate, nextDate, stage, judge, petitioner, pet_advocate, respondent, res_advocate])
+
+    print(f"Case details saved to {csv_file_path}")
 
 except TimeoutException:
     print("Timeout occurred while waiting for the elements to load.")

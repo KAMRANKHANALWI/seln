@@ -181,8 +181,6 @@ def third_loop():
         time.sleep(0.5)
         fourth_loop()
         time.sleep(0.5)
-        print("Breaking")
-    print("Total Count of Cases: ",len(Cases))
 
 
 def second_loop_both_button_clicked_single_row_column():

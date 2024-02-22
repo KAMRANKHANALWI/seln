@@ -174,7 +174,6 @@ def third_loop():
     xpath = "(//tbody[@id='dist_report_body']/tr/td[4]/a)"
     wait = WebDriverWait(driver, 20)
     elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath)))
-    print("Len", len(elements))
     for element in elements:
         time.sleep(1)
         element.click()

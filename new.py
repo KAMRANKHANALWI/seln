@@ -1,25 +1,25 @@
+from io import BytesIO
+import re
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
-import requests
+from datetime import datetime
 from PIL import Image
+import pyautogui
 import pytesseract
 
-# Define the website URL and the path to the Chrome WebDriver
+# Firefox 
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from webdriver_manager.firefox import GeckoDriverManager
+driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+# # Chrome 
+# from selenium.webdriver.chrome.service import Service as ChromeService
+# from webdriver_manager.chrome import ChromeDriverManager
+# driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+
 website_url = 'https://njdg.ecourts.gov.in/njdgnew/?p=main/index&state_code=7~26'
-chrome_driver_path = '/Users/kamrankhanalwi/Desktop/seln/chromedriver/chromedriver'
-
-# Instantiate a Chrome Service instance with the specified path
-chrome_service = Service(chrome_driver_path)
-
-# Start the Chrome Driver service
-chrome_service.start()
-
-# Pass the service object when creating the Chrome WebDriver instance
-driver = webdriver.Chrome(service=chrome_service)
-
-# Open the specified website
 driver.get(website_url)
 driver.maximize_window()
 
@@ -55,38 +55,72 @@ captcha_link = driver.find_element(By.XPATH, '//*[@id="est_report_body"]/tr[1]/t
 captcha_link.click()
 time.sleep(4)
 
-# submit button
-# time.sleep(40)
-# submit_button = driver.find_element(By.XPATH, '//input[@class="btn btn-success col-auto btn-sm"]')
-# time.sleep(2)
-# submit_button.click()
-# time.sleep(5)
+for _ in range(20):
+        current_datetime = datetime.now()
+        current_datetime = current_datetime.strftime("%d_%m_%Y_%H_%M_%S")
+        img_download_path = f'CaptchaImg/{current_datetime}.png'
 
-# Get the captcha image source
-captcha_image_url = driver.find_element(By.ID, 'captcha_image1').get_attribute('src')
 
-# Download the captcha image
-captcha_image_data = requests.get(captcha_image_url).content
 
-# Save the captcha image locally
-with open('captcha_image.png', 'wb') as f:
-    f.write(captcha_image_data)
+        # Wait for the captcha image to become visible
+        image_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="captcha_image1"]')))
 
-# Use PyTesseract to extract text from the captcha image
-captcha_text = pytesseract.image_to_string(Image.open('captcha_image.png'))
-time.sleep(4)
-print("Extracted Captcha Text:", captcha_text)
+        # Get the size and location of the captcha element
+        location = image_element.location
+        size = image_element.size
 
-# Find the input field for the captcha
-# captcha_input = driver.find_element(By.ID, 'captcha_input_id')  # Adjust the ID as per your HTML
-captcha_input = driver.find_element(By.XPATH, '//*[@id="captcha1"]')
+        # Take a screenshot of the entire page
+        screenshot = driver.get_screenshot_as_png()
 
-# Enter the extracted captcha text into the input field
-captcha_input.send_keys(captcha_text)
-time.sleep(5)
+        # Use PIL to open the screenshot
+        image = Image.open(BytesIO(screenshot))
+
+        # Calculate the region to crop
+        left = location['x'] + 250  
+        top = location['y'] + 400
+        right = left + size['width'] + 150
+        bottom = top + size['height'] + 100
+
+        # Crop the image to the captcha region
+        cropped_image = image.crop((left, top, right, bottom))
+        cropped_image.save(img_download_path) # Save the cropped image to a file
+        time.sleep(2)  # Just for stability
+
+
+        '''STEP 7 == Solving the Captcha img for solving'''
+        if img_download_path is not None:
+            image_path = img_download_path
+            image = Image.open(image_path)
+
+            # Perform OCR on the image
+            text = pytesseract.image_to_string(image) 
+            cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)  # Remove unwanted characters
+            cleaned_text = cleaned_text[:5]
+            # print("Extracted Text:", cleaned_text)
+        else:
+            print("Not Able to find")
+
+        '''STEP 8 == After Solving the Captcha Filling the data captcha data into input & Submit'''
+        captcha_input = driver.find_element("id", "captcha1")
+        captcha_input.clear()
+        captcha_input.send_keys(cleaned_text)
+        time.sleep(3)
+
+        xpath = '//input[@class="btn btn-success col-auto btn-sm"]'
+        wait = WebDriverWait(driver, 20)  # Adjust the timeout as needed
+        element = wait.until(EC.presence_of_element_located((By.XPATH, xpath))) # Wait until the element is present
+        element.click() # Click on the element
+        time.sleep(3)
+        popup_timeout = 10
+        try:
+            popup = WebDriverWait(driver, popup_timeout).until(EC.alert_is_present())
+            popup.accept()
+            time.sleep(3)
+        except:
+            print("No alert found within the specified timeout.")
+            break
 
 
 
 # Remember to stop the service when you're done with the driver
 driver.quit()
-chrome_service.stop()
